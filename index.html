@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json"> <!-- Certifique-se que este ficheiro existe -->
+    <meta name="theme-color" content="#87CEEB"> 
+    <title>La Grecia Pizzaria - App Inteligente</title>
+    <style>
+        /* Estilos Globais */
+        :root {
+            --cor-primaria: #87CEEB; /* Azul claro */
+            --cor-secundaria: #5F9EA0; /* CadetBlue */
+            --cor-texto-principal: #333333;
+            --cor-texto-cabecalho: #000000;
+            --cor-fundo-geral: #f0f8ff; /* AliceBlue */
+            --cor-fundo-conteudo: #FFFFFF;
+            --cor-destaque-item: #F0F8FF; /* AliceBlue para itens de lista */
+            --cor-borda-suave: #DAE9F0;
+            --cor-gemini-botao: #FFFACD; /* Amarelo claro */
+            --cor-gemini-texto: #DAA520; /* Dourado */
+            --cor-gemini-borda: #FFD700; /* Dourado */
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--cor-fundo-geral); 
+            color: var(--cor-texto-principal); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* Cabeçalho */
+        header {
+            background-color: var(--cor-primaria); 
+            color: var(--cor-texto-cabecalho); 
+            padding: 1em 0.5em;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        
+        .nav-buttons {
+            margin-top: 10px;
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+        }
+        .nav-buttons button, .gemini-button {
+            background-color: var(--cor-fundo-conteudo); 
+            color: var(--cor-secundaria); 
+            border: 1px solid var(--cor-primaria); 
+            padding: 8px 12px; 
+            margin: 5px; 
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, color 0.2s;
+            font-size: 0.85em; 
+        }
+        .nav-buttons button:hover, .nav-buttons button.active, .gemini-button:hover {
+            background-color: var(--cor-secundaria); 
+            color: var(--cor-fundo-conteudo); 
+        }
+        .gemini-button {
+            background-color: var(--cor-gemini-botao);
+            color: var(--cor-gemini-texto);
+            border-color: var(--cor-gemini-borda);
+        }
+        .gemini-button:hover {
+            background-color: var(--cor-gemini-texto);
+            color: var(--cor-fundo-conteudo);
+        }
+
+        /* Conteúdo Principal */
+        main {
+            width: 95%; 
+            max-width: 1200px; 
+            margin: 15px auto; 
+            padding: 15px;   
+            background-color: var(--cor-fundo-conteudo); 
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05); 
+            flex-grow: 1;
+        }
+        
+        .tela { display: none; }
+        .tela.active { display: block; }
+
+        .input-section, .pizza-do-dia-section {
+            margin-bottom: 15px;
+            max-width: 600px; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .pizza-do-dia-section {
+            padding: 15px;
+            border: 1px dashed var(--cor-primaria);
+            border-radius: 8px;
+            background-color: var(--cor-destaque-item);
+            text-align: center;
+        }
+        .pizza-do-dia-section h3 {
+            margin-top: 0;
+            color: #4682B4;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        .input-section input[type="text"] {
+            width: calc(100% - 20px); 
+            padding: 9px;
+            border: 1px solid #B0E0E6; 
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .input-section input[type="text"]::placeholder { color: #a9a9a9; }
+        
+        .sugestao-style, .loading-message-style, .gemini-response-style, .gemini-loading-style {
+            margin-top: 6px;
+            font-size: 0.85em;
+            color: #4682B4; 
+            min-height: 1.1em; 
+        }
+        .sugestao-style a {
+            color: var(--cor-secundaria); 
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .sugestao-style a:hover { color: #4682B4; }
+        .loading-message-style, .gemini-loading-style { font-style: italic; }
+        .gemini-response-style {
+            white-space: pre-wrap; 
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        .section-title {
+            color: #4682B4; 
+            border-bottom: 2px solid #E0F4FF; 
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 15px; 
+            font-size: 1.3em;
+        }
+        
+        .results-display {
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .results-display #pizza-nome {
+            font-size: 1.4em;
+            margin-bottom: 8px;
+        }
+        .results-display #pizza-ingredientes {
+            list-style: none;
+            padding: 0;
+        }
+        .results-display #pizza-ingredientes li {
+            background-color: var(--cor-destaque-item); 
+            border: 1px solid var(--cor-borda-suave); 
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+        }
+        .results-display #pizza-ingredientes li .gramatura {
+            font-weight: bold;
+            color: #4682B4; 
+        }
+
+        .empty-message {
+            color: #666666; 
+            font-style: italic;
+            text-align: center; 
+            padding: 15px;
+            width: 100%;
+        }
+        
+        .item-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); 
+            gap: 15px; 
+            list-style: none;
+            padding: 0;
+        }
+        .item-card { 
+            background-color: var(--cor-fundo-conteudo); 
+            border: 1px solid var(--cor-borda-suave); 
+            padding: 12px;
+            border-radius: 6px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07); 
+            display: flex;
+            flex-direction: column; 
+            min-height: 170px; 
+        }
+
+        .historico-card .historico-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; 
+            margin-bottom: 8px; 
+            flex-wrap: wrap; 
+        }
+        .historico-card .historico-pizza-nome {
+            font-size: 1.05em; 
+            font-weight: bold;
+            margin-right: 8px; 
+            flex-grow: 1; 
+        }
+        .historico-card .historico-data {
+            font-size: 0.75em; 
+            color: #555555; 
+            white-space: nowrap; 
+        }
+        .historico-card .historico-timer {
+            font-size: 0.85em; 
+            font-style: italic;
+            margin-bottom: 8px; 
+            color: #4682B4; 
+         }
+        .historico-card .historico-ingredientes {
+            list-style: none;
+            padding-left: 0; 
+            font-size: 0.8em; 
+            flex-grow: 1; 
+        }
+        .historico-card .historico-ingredientes li {
+            padding: 3px 0; 
+            margin-bottom: 1px;
+            background-color: transparent;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+        }
+        .historico-card .historico-ingredientes .gramatura {
+            font-weight: normal;
+            color: #555555; 
+            margin-left: 5px; 
+            white-space: nowrap;
+        }
+
+        .cardapio-pizza-card .cardapio-pizza-nome {
+            font-size: 1.1em; 
+            font-weight: bold;
+            margin-bottom: 6px; 
+            text-align: center; 
+        }
+        .cardapio-pizza-card .cardapio-pizza-descricao { 
+            font-size: 0.8em;
+            color: #555555;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            max-height: 55px; 
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #B0E0E6 var(--cor-fundo-conteudo);
+        }
+        .cardapio-pizza-card .cardapio-pizza-descricao::-webkit-scrollbar { width: 5px; }
+        .cardapio-pizza-card .cardapio-pizza-descricao::-webkit-scrollbar-thumb {
+            background-color: #B0E0E6;
+            border-radius: 10px;
+        }
+        .cardapio-pizza-card .cardapio-pizza-descricao::-webkit-scrollbar-track { background-color: var(--cor-fundo-conteudo); }
+
+        .cardapio-pizza-card .cardapio-ingredientes {
+            list-style: none;
+            padding-left: 0;
+            font-size: 0.75em; 
+            color: #444444;
+            flex-grow: 1;
+            margin-bottom: 10px; /* Espaço para o botão Gemini */
+        }
+        .cardapio-pizza-card .cardapio-ingredientes li {
+            padding: 1px 0; 
+            display: flex;
+            justify-content: space-between;
+        }
+         .cardapio-pizza-card .cardapio-ingredientes .gramatura {
+            font-weight: normal;
+            color: #666666;
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+       
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); /* Fundo mais escuro */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 85%;
+            max-width: 550px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: #4682B4;
+        }
+        .close-button {
+            color: #aaa;
+            float: right; /* Mantido, mas pode ser melhorado com flex */
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 5px;
+            right: 15px;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        footer {
+            text-align: center;
+            padding: 12px;
+            background-color: var(--cor-primaria); 
+            color: var(--cor-texto-cabecalho); 
+            width: 100%;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 767px) { 
+            .item-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.2em; }
+            .nav-buttons button, .gemini-button { padding: 7px 10px; font-size: 0.8em; }
+            main { padding: 10px; }
+            .historico-card .historico-pizza-nome, .cardapio-pizza-card .cardapio-pizza-nome { font-size: 1em; }
+            .historico-card .historico-ingredientes, .cardapio-pizza-card .cardapio-ingredientes { font-size: 0.75em; }
+            .cardapio-pizza-card .cardapio-pizza-descricao { font-size: 0.75em; max-height: 45px; }
+            .modal-content { width: 90%; margin: 15% auto; padding: 15px;}
+        }
+        @media (max-width: 400px) {
+            .nav-buttons { flex-direction: column; align-items: center; }
+            .nav-buttons button { width: 80%; margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>La Grecia Pizzaria</h1>
+        <div class="nav-buttons">
+            <button id="btn-tela-pesquisa" class="active">Pesquisar Pizza</button>
+            <button id="btn-tela-historico">Ver Histórico</button>
+            <button id="btn-tela-cardapio">Ver Cardápio</button> 
+        </div>
+    </header>
+
+    <main>
+        <section id="tela-pesquisa" class="tela active">
+            <div class="pizza-do-dia-section">
+                <h3>✨ Sugestão da Casa ✨</h3>
+                <button id="btn-sugestao-pizza" class="gemini-button">Me Surpreenda!</button>
+                <div id="sugestao-pizza-container" class="gemini-response-style" style="display: none;"></div>
+                <p id="sugestao-loading" class="gemini-loading-style" style="display: none;">Pensando na melhor pizza para você...</p>
+            </div>
+
+            <div class="input-section timer-section">
+                <label for="input-timer">Tempo de Preparo / Observação:</label>
+                <input type="text" id="input-timer" placeholder="Ex: 5 min / Urgente">
+            </div>
+
+            <div class="input-section search-section">
+                <label for="busca-pizza">Digite o nome da Pizza:</label>
+                <input type="text" id="busca-pizza" placeholder="Ex: Calabresa" autocomplete="off">
+                <p id="sugestao-correcao" class="sugestao-style"></p> 
+                <p id="loading-message" class="loading-message-style" style="display: none;">Carregando dados das pizzas...</p>
+            </div>
+
+            <div class="results-display">
+                <h2 id="pizza-nome" class="section-title">Detalhes da Pizza</h2>
+                <ul id="pizza-ingredientes"></ul>
+                <p id="mensagem-status" class="empty-message">Carregando cardápio... Por favor, aguarde.</p>
+            </div>
+        </section>
+
+        <section id="tela-historico" class="tela">
+            <h2 class="section-title">Histórico de Consultas</h2>
+            <ul id="historico-lista" class="item-grid"></ul>
+            <p id="mensagem-historico-vazio" class="empty-message" style="display: none;">Seu histórico de consultas está vazio.</p>
+        </section>
+
+        <section id="tela-cardapio" class="tela"> 
+            <h2 class="section-title">Nosso Cardápio</h2>
+            <ul id="cardapio-lista" class="item-grid"></ul>
+            <p id="mensagem-cardapio-vazio" class="empty-message" style="display: none;">Cardápio indisponível ou vazio.</p>
+        </section>
+    </main>
+
+     <!-- Modal para Descrição Detalhada da Pizza -->
+    <div id="modal-descricao-pizza" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-modal-descricao">&times;</span>
+            <h3 id="modal-pizza-nome"></h3>
+            <p id="modal-pizza-descricao" class="gemini-response-style"></p>
+            <p id="modal-loading" class="gemini-loading-style" style="display: none;">Criando uma descrição especial...</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; <span id="ano-atual"></span> La Grecia Pizzaria. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfCzOXaEqt_r53BtkoAsVKc0CKWP3HaahWi1GPI4k9Ubz14E3exXrdTkTQ68jtiv9lj3QtkmsRlD3E/pub?output=csv'; 
+        
+        let pizzasDb = []; 
+
+        const inputBusca = document.getElementById('busca-pizza');
+        const inputTimer = document.getElementById('input-timer');
+        const nomePizzaEl = document.getElementById('pizza-nome');
+        const ingredientesListaEl = document.getElementById('pizza-ingredientes');
+        const mensagemStatusEl = document.getElementById('mensagem-status');
+        const anoAtualEl = document.getElementById('ano-atual');
+        const sugestaoCorrecaoEl = document.getElementById('sugestao-correcao');
+        const loadingMessageEl = document.getElementById('loading-message');
+
+        const telaPesquisa = document.getElementById('tela-pesquisa');
+        const telaHistorico = document.getElementById('tela-historico');
+        const telaCardapio = document.getElementById('tela-cardapio'); 
+        const btnTelaPesquisa = document.getElementById('btn-tela-pesquisa');
+        const btnTelaHistorico = document.getElementById('btn-tela-historico');
+        const btnTelaCardapio = document.getElementById('btn-tela-cardapio'); 
+        
+        const historicoListaEl = document.getElementById('historico-lista');
+        const mensagemHistoricoVazioEl = document.getElementById('mensagem-historico-vazio');
+        const cardapioListaEl = document.getElementById('cardapio-lista'); 
+        const mensagemCardapioVazioEl = document.getElementById('mensagem-cardapio-vazio'); 
+
+        // Elementos Gemini
+        const btnSugestaoPizza = document.getElementById('btn-sugestao-pizza');
+        const sugestaoPizzaContainer = document.getElementById('sugestao-pizza-container');
+        const sugestaoLoading = document.getElementById('sugestao-loading');
+        const modalDescricaoPizza = document.getElementById('modal-descricao-pizza');
+        const modalPizzaNome = document.getElementById('modal-pizza-nome');
+        const modalPizzaDescricao = document.getElementById('modal-pizza-descricao');
+        const modalLoading = document.getElementById('modal-loading');
+        const closeModalDescricao = document.getElementById('close-modal-descricao');
+
+        let historicoConsultas = [];
+        const CORRECTION_THRESHOLD = 2; 
+        const GEMINI_API_KEY = ""; // Deixe em branco, será fornecido pelo ambiente Canvas
+        const GEMINI_API_URL_BASE = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        // --- Chamada à API Gemini ---
+        async function chamarGeminiAPI(prompt) {
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            };
+            try {
+                const response = await fetch(GEMINI_API_URL_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("Erro na API Gemini:", response.status, errorBody);
+                    throw new Error(`Erro da API Gemini: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Resposta inesperada da API Gemini:", result);
+                    return "Não foi possível obter uma resposta da IA no momento.";
+                }
+            } catch (error) {
+                console.error("Erro ao chamar a API Gemini:", error);
+                return "Ocorreu um erro ao contatar a inteligência artificial.";
+            }
+        }
+
+        // --- Funcionalidade: Sugestão da Pizza do Dia ---
+        btnSugestaoPizza.addEventListener('click', async () => {
+            if (pizzasDb.length === 0) {
+                sugestaoPizzaContainer.textContent = "O cardápio ainda não foi carregado. Tente novamente em instantes.";
+                sugestaoPizzaContainer.style.display = 'block';
+                return;
+            }
+            sugestaoLoading.style.display = 'block';
+            sugestaoPizzaContainer.style.display = 'none';
+
+            const nomesPizzas = pizzasDb.map(p => p.nome).join(", ");
+            const prompt = `Eu sou o dono da La Grecia Pizzaria. Nosso cardápio inclui: ${nomesPizzas}. Por favor, sugira UMA pizza do nosso cardápio para hoje de forma criativa e apetitosa, como se fosse uma "Pizza do Dia". Dê apenas o nome da pizza e uma frase curta e convidativa sobre ela.`;
+            
+            const sugestao = await chamarGeminiAPI(prompt);
+            
+            sugestaoPizzaContainer.textContent = sugestao;
+            sugestaoLoading.style.display = 'none';
+            sugestaoPizzaContainer.style.display = 'block';
+        });
+
+        // --- Funcionalidade: Descrição Detalhada da Pizza (Modal) ---
+        function abrirModalDescricao(pizza) {
+            modalPizzaNome.textContent = pizza.nome;
+            modalPizzaDescricao.textContent = ''; // Limpa descrição anterior
+            modalLoading.style.display = 'block';
+            modalDescricaoPizza.style.display = 'block';
+
+            const ingredientesString = pizza.ingredientes.map(ing => `${ing.nome} (${ing.gramatura})`).join(', ');
+            const prompt = `Crie uma descrição curta, detalhada e apetitosa para a pizza "${pizza.nome}" da La Grecia Pizzaria. Seus ingredientes principais são: ${ingredientesString}. A descrição original é: "${pizza.descricao}". Use um tom amigável e convidativo.`;
+
+            chamarGeminiAPI(prompt).then(descricaoGerada => {
+                modalPizzaDescricao.textContent = descricaoGerada;
+                modalLoading.style.display = 'none';
+            });
+        }
+
+        closeModalDescricao.onclick = function() {
+            modalDescricaoPizza.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == modalDescricaoPizza) {
+                modalDescricaoPizza.style.display = "none";
+            }
+        }
+
+        // --- Função de Carregar Dados da Planilha ---
+        async function carregarPizzasDaPlanilha() {
+            const placeholderUrl = 'COLE_AQUI_O_SEU_LINK_PUBLICADO_COMO_CSV'; 
+            if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL === placeholderUrl || GOOGLE_SHEET_CSV_URL === 'YOUR_GOOGLE_SHEET_CSV_LINK_GOES_HERE') {
+                mensagemStatusEl.textContent = 'ERRO: URL da planilha não configurada.';
+                loadingMessageEl.style.display = 'none';
+                console.error('URL da planilha não configurada.');
+                alert('Atenção: A URL da planilha não foi configurada corretamente.');
+                return;
+            }
+            loadingMessageEl.style.display = 'block';
+            mensagemStatusEl.textContent = 'Carregando cardápio...';
+            inputBusca.disabled = true;
+            try {
+                const response = await fetch(GOOGLE_SHEET_CSV_URL);
+                if (!response.ok) { throw new Error(`Erro HTTP ${response.status}`); }
+                const csvText = await response.text();
+                processarCSV(csvText); 
+                mensagemStatusEl.textContent = pizzasDb.length > 0 ? 'Digite o nome de uma pizza.' : 'Nenhuma pizza carregada.';
+                renderizarCardapio(); 
+            } catch (error) {
+                console.error('Falha ao carregar pizzas:', error);
+                mensagemStatusEl.textContent = 'Erro ao carregar o cardápio.';
+                mensagemCardapioVazioEl.textContent = 'Erro ao carregar o cardápio.';
+                mensagemCardapioVazioEl.style.display = 'block';
+                alert(`Não foi possível carregar o cardápio: ${error.message}.`);
+            } finally {
+                loadingMessageEl.style.display = 'none';
+                inputBusca.disabled = false;
+            }
+        }
+
+        function processarCSV(csvText) {
+            pizzasDb = []; 
+            const linhas = csvText.trim().split(/\r\n|\n|\r/); 
+            if (linhas.length <= 1) { return; }
+            const linhasDeDados = linhas.slice(1);
+            for (let i = 0; i < linhasDeDados.length; i++) {
+                const linhaOriginal = linhasDeDados[i].trim();
+                if (!linhaOriginal) continue;
+                const colunas = [];
+                let buffer = "";
+                let dentroDeAspas = false;
+                for (let k = 0; k < linhaOriginal.length; k++) {
+                    const char = linhaOriginal[k];
+                    if (char === '"') {
+                        if (dentroDeAspas && k + 1 < linhaOriginal.length && linhaOriginal[k+1] === '"') {
+                            buffer += '"'; k++; 
+                        } else { dentroDeAspas = !dentroDeAspas; }
+                    } else if (char === ',' && !dentroDeAspas) {
+                        colunas.push(buffer.trim()); buffer = "";
+                    } else { buffer += char; }
+                }
+                colunas.push(buffer.trim()); 
+                if (colunas.length >= 3) { 
+                    const nomePizza = colunas[0].trim();
+                    let descricaoPizza = colunas[1].trim(); 
+                    let ingredientesJSONString = colunas[2].trim();
+                    if (ingredientesJSONString.startsWith('"') && ingredientesJSONString.endsWith('"')) {
+                        ingredientesJSONString = ingredientesJSONString.substring(1, ingredientesJSONString.length - 1).replace(/""/g, '"');
+                    }
+                    if (descricaoPizza.startsWith('"') && descricaoPizza.endsWith('"')) {
+                        descricaoPizza = descricaoPizza.substring(1, descricaoPizza.length - 1).replace(/""/g, '"');
+                    }
+                    if (!nomePizza) continue;
+                    try {
+                        const ingredientes = JSON.parse(ingredientesJSONString);
+                        if (Array.isArray(ingredientes)) {
+                            pizzasDb.push({ 
+                                id: `pizza-${i}`, // Adiciona um ID para referência
+                                nome: nomePizza, 
+                                descricao: descricaoPizza || "Deliciosa pizza artesanal.", 
+                                ingredientes: ingredientes 
+                            });
+                        }
+                    } catch (e) {
+                        console.error(`Erro parse JSON linha ${i+2} ('${nomePizza}'): ${e}. JSON: '${ingredientesJSONString}'`);
+                    }
+                }
+            }
+        }
+
+        function renderizarCardapio() {
+            cardapioListaEl.innerHTML = '';
+            if (pizzasDb.length === 0) {
+                mensagemCardapioVazioEl.textContent = 'Nenhuma pizza no cardápio.';
+                mensagemCardapioVazioEl.style.display = 'block';
+            } else {
+                mensagemCardapioVazioEl.style.display = 'none';
+                pizzasDb.forEach(pizza => {
+                    const cardLi = document.createElement('li');
+                    cardLi.className = 'item-card cardapio-pizza-card'; 
+                    cardLi.innerHTML = `
+                        <h3 class="cardapio-pizza-nome">${pizza.nome}</h3>
+                        <p class="cardapio-pizza-descricao">${pizza.descricao}</p> 
+                        <ul class="cardapio-ingredientes">
+                            ${pizza.ingredientes.map(ing => `<li><span>${ing.nome}</span> <span class="gramatura">${ing.gramatura}</span></li>`).join('')}
+                        </ul>
+                        <button class="gemini-button btn-detalhes-pizza" data-pizza-id="${pizza.id}">Ver Detalhes IA</button>
+                    `;
+                    cardapioListaEl.appendChild(cardLi);
+                });
+
+                // Adiciona event listeners para os novos botões de detalhes
+                document.querySelectorAll('.btn-detalhes-pizza').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const pizzaId = this.dataset.pizzaId;
+                        const pizzaSelecionada = pizzasDb.find(p => p.id === pizzaId);
+                        if (pizzaSelecionada) {
+                            abrirModalDescricao(pizzaSelecionada);
+                        }
+                    });
+                });
+            }
+        }
+
+        function levenshteinDistance(a, b) {
+            if (!a || !b) return (a || b || '').length;
+            a = a.toLowerCase(); b = b.toLowerCase(); 
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+            for (let i = 0; i <= a.length; i += 1) { matrix[0][i] = i; }
+            for (let j = 0; j <= b.length; j += 1) { matrix[j][0] = j; }
+            for (let j = 1; j <= b.length; j += 1) {
+                for (let i = 1; i <= a.length; i += 1) {
+                    const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+                    matrix[j][i] = Math.min( matrix[j][i - 1] + 1, matrix[j - 1][i] + 1, matrix[j - 1][i - 1] + indicator );
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function mostrarTela(idTela) {
+            document.querySelectorAll('.tela').forEach(tela => tela.classList.remove('active'));
+            const telaAtiva = document.getElementById(idTela);
+            if (telaAtiva) telaAtiva.classList.add('active');
+            document.querySelectorAll('.nav-buttons button').forEach(btn => btn.classList.remove('active'));
+            const botaoAtivo = document.getElementById(`btn-${idTela.split('-')[1]}`); // Ajustado para pegar o nome da tela
+             if (botaoAtivo) botaoAtivo.classList.add('active');
+            
+            if (idTela === 'tela-historico') renderizarHistorico(); 
+            else if (idTela === 'tela-cardapio') renderizarCardapio(); 
+        }
+
+        function carregarHistorico() {
+            const historicoSalvo = localStorage.getItem('laGreciaPizzariaHistorico');
+            if (historicoSalvo) { historicoConsultas = JSON.parse(historicoSalvo); }
+            renderizarHistorico();
+        }
+        function salvarHistorico() {
+            localStorage.setItem('laGreciaPizzariaHistorico', JSON.stringify(historicoConsultas));
+        }
+        function adicionarAoHistorico(pizza, termoPesquisado, timerInfo) {
+            const novaEntrada = {
+                id: Date.now(),
+                dataHora: new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                termoPesquisado: termoPesquisado, 
+                pizzaEncontrada: JSON.parse(JSON.stringify(pizza)), 
+                timerInfo: timerInfo || "N/A" 
+            };
+            historicoConsultas.unshift(novaEntrada); 
+            if (historicoConsultas.length > 50) { historicoConsultas.pop(); }
+            salvarHistorico();
+        }
+        function renderizarHistorico() {
+            historicoListaEl.innerHTML = '';
+            if (historicoConsultas.length === 0) {
+                mensagemHistoricoVazioEl.style.display = 'block';
+            } else {
+                mensagemHistoricoVazioEl.style.display = 'none';
+                historicoConsultas.forEach(item => {
+                    const cardLi = document.createElement('li');
+                    cardLi.className = 'item-card historico-card'; 
+                    cardLi.innerHTML = `
+                        <div class="historico-item-header">
+                            <span class="historico-pizza-nome">${item.pizzaEncontrada.nome} <small>(Pesq: ${item.termoPesquisado})</small></span>
+                            <span class="historico-data">${item.dataHora}</span>
+                        </div>
+                        <div class="historico-timer">Tempo/Obs: ${item.timerInfo}</div>
+                        <ul class="historico-ingredientes">
+                            ${item.pizzaEncontrada.ingredientes.map(ing => `<li><span>${ing.nome}</span> <span class="gramatura">${ing.gramatura}</span></li>`).join('')}
+                        </ul>
+                    `;
+                    historicoListaEl.appendChild(cardLi);
+                });
+            }
+        }
+        
+        function exibirResultadoPesquisa(pizza) {
+            ingredientesListaEl.innerHTML = ''; 
+            if (pizza) {
+                nomePizzaEl.textContent = pizza.nome;
+                pizza.ingredientes.forEach(ingrediente => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${ingrediente.nome}</span> <span class="gramatura">${ingrediente.gramatura}</span>`;
+                    ingredientesListaEl.appendChild(li);
+                });
+                mensagemStatusEl.style.display = 'none';
+            } else {
+                nomePizzaEl.textContent = 'Detalhes da Pizza';
+                mensagemStatusEl.style.display = 'block'; 
+            }
+        }
+
+        function buscarPizzaEAdicionarAoHistorico() {
+            if (inputBusca.disabled || pizzasDb.length === 0) return;
+            const termoOriginal = inputBusca.value.trim();
+            const termoBuscaLower = termoOriginal.toLowerCase();
+            const timerInfo = inputTimer.value.trim();
+            sugestaoCorrecaoEl.innerHTML = ''; 
+            if (termoBuscaLower === '') {
+                exibirResultadoPesquisa(null);
+                mensagemStatusEl.textContent = 'Digite o nome de uma pizza.';
+                return;
+            }
+            let pizzaEncontrada = pizzasDb.find(p => p.nome.toLowerCase() === termoBuscaLower);
+            if (!pizzaEncontrada) {
+                pizzaEncontrada = pizzasDb.find(p => p.nome.toLowerCase().startsWith(termoBuscaLower));
+            }
+            exibirResultadoPesquisa(pizzaEncontrada);
+            if (pizzaEncontrada) {
+                adicionarAoHistorico(pizzaEncontrada, termoOriginal, timerInfo);
+            } else {
+                 mensagemStatusEl.textContent = `Nenhuma pizza como "${termoOriginal}".`;
+            }
+        }
+        
+        function exibirPizzaAoDigitarOuSugerir() {
+            if (inputBusca.disabled || pizzasDb.length === 0) {
+                 mensagemStatusEl.textContent = pizzasDb.length === 0 ? 'Cardápio carregando...' : 'Carregando...';
+                return;
+            }
+            const termoDigitado = inputBusca.value; 
+            const termoBuscaLower = termoDigitado.trim().toLowerCase();
+            sugestaoCorrecaoEl.innerHTML = ''; 
+            if (termoBuscaLower === '') {
+               exibirResultadoPesquisa(null);
+               mensagemStatusEl.textContent = 'Digite o nome de uma pizza.';
+               return;
+            }
+            
+            let pizzaEncontrada = pizzasDb.find(p => p.nome.toLowerCase() === termoBuscaLower);
+            if (pizzaEncontrada) { exibirResultadoPesquisa(pizzaEncontrada); return; }
+            pizzaEncontrada = pizzasDb.find(p => p.nome.toLowerCase().startsWith(termoBuscaLower));
+            if (pizzaEncontrada) { exibirResultadoPesquisa(pizzaEncontrada); return; }
+            
+            let melhorSugestao = null;
+            let menorDistancia = Infinity;
+            for (const pizza of pizzasDb) {
+                const dist = levenshteinDistance(termoBuscaLower, pizza.nome); 
+                if (dist < menorDistancia) { menorDistancia = dist; melhorSugestao = pizza; }
+            }
+            if (melhorSugestao && menorDistancia > 0 && menorDistancia <= CORRECTION_THRESHOLD) {
+                exibirResultadoPesquisa(null); 
+                mensagemStatusEl.textContent = `Nenhuma pizza como "${termoDigitado}".`;
+                sugestaoCorrecaoEl.innerHTML = `Você quis dizer: <a href="#" class="link-sugestao" data-sugerido="${melhorSugestao.nome}">${melhorSugestao.nome}</a>?`;
+                const linkSugestao = sugestaoCorrecaoEl.querySelector('.link-sugestao');
+                if (linkSugestao) {
+                    linkSugestao.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        inputBusca.value = e.target.dataset.sugerido; 
+                        sugestaoCorrecaoEl.innerHTML = ''; 
+                        exibirPizzaAoDigitarOuSugerir(); 
+                    });
+                }
+            } else {
+                exibirResultadoPesquisa(null);
+                mensagemStatusEl.textContent = `Nenhuma pizza como "${termoDigitado}".`;
+            }
+        }
+
+        inputBusca.addEventListener('input', exibirPizzaAoDigitarOuSugerir); 
+        inputBusca.addEventListener('change', buscarPizzaEAdicionarAoHistorico); 
+        btnTelaPesquisa.addEventListener('click', () => mostrarTela('tela-pesquisa'));
+        btnTelaHistorico.addEventListener('click', () => mostrarTela('tela-historico'));
+        btnTelaCardapio.addEventListener('click', () => mostrarTela('tela-cardapio')); 
+
+        async function inicializarApp() {
+            anoAtualEl.textContent = new Date().getFullYear();
+            mostrarTela('tela-pesquisa'); 
+            carregarHistorico();
+            await carregarPizzasDaPlanilha(); 
+        }
+
+        if ('serviceWorker' in navigator) {
+            if (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js') 
+                        .then(reg => console.log('ServiceWorker: Registado', reg.scope))
+                        .catch(err => console.error('ServiceWorker: Falha ao registar.', err));
+                });
+            } else {
+                console.warn('Service Worker não registado (necessário HTTPS ou localhost).');
+            }
+        } else { console.warn('Service Worker não suportado.'); }
+
+        document.addEventListener('DOMContentLoaded', inicializarApp);
+    </script>
+</body>
+</html>
